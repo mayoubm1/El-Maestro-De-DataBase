@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Multi-Hub Database Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 30px 40px;
+            border-bottom: 4px solid #60a5fa;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .stat {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            padding: 20px;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        .nav-item:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .content-area {
+            padding: 40px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            margin-bottom: 30px;
+        }
+
+        .section-header h2 {
+            font-size: 28px;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .section-header p {
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .card h3 {
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="password"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .table-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .table-item {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .table-item:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .table-item.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .table-name {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .table-hub {
+            font-size: 12px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .table-info {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        .conflict-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+
+        .keyword { color: #c678dd; }
+        .function { color: #61afef; }
+        .string { color: #98c379; }
+        .comment { color: #5c6370; font-style: italic; }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #64748b;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #3b82f6;
+        }
+
+        .tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+            transition: width 0.3s;
+        }
+
+        .hub-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .hub-chip {
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .hub-chip:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .hub-chip.selected {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .flow-diagram {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            background: #fafafa;
+            min-height: 300px;
+            position: relative;
+        }
+
+        .flow-node {
+            background: white;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .validation-result {
+            margin-top: 20px;
+        }
+
+        .validation-item {
+            padding: 12px;
+            border-left: 4px solid #e2e8f0;
+            background: #f8fafc;
+            margin-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .validation-item.pass {
+            border-left-color: #10b981;
+        }
+
+        .validation-item.fail {
+            border-left-color: #ef4444;
+        }
+
+        .validation-item.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 24px;
+            color: #1e293b;
+        }
+
+        .close-modal {
+            font-size: 28px;
+            cursor: pointer;
+            color: #64748b;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: #1e293b;
+        }
+
+        .conflict-list {
+            margin-top: 20px;
+        }
+
+        .conflict-item {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .conflict-item h4 {
+            color: #dc2626;
+            margin-bottom: 10px;
+        }
+
+        .conflict-resolution {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .schema-viewer {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .column-list {
+            margin-top: 15px;
+        }
+
+        .column-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .column-item:last-child {
+            border-bottom: none;
+        }
+
+        .column-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .column-type {
+            color: #64748b;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <div class="logo">🗄️</div>
+                <div>
+                    <div>Supabase Multi-Hub Database Manager</div>
+                    <div class="subtitle">Enterprise Database Schema Management & Conflict Resolution</div>
+                </div>
+            </h1>
+            <div class="stats">
+                <div class="stat">
+                    <strong id="totalTables">100</strong>
+                    Total Tables
+                </div>
+                <div class="stat">
+                    <strong id="totalHubs">12</strong>
+                    Hub Applications
+                </div>
+                <div class="stat">
+                    <strong id="conflictCount">0</strong>
+                    Conflicts
+                </div>
+                <div class="stat">
+                    <strong id="validationStatus">Ready</strong>
+                    System Status
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="nav-item active" onclick="showPage('connection')">
+                    <span class="nav-icon">🔌</span>
+                    Connection
+                </div>
+                <div class="nav-item" onclick="showPage('tables')">
+                    <span class="nav-icon">📊</span>
+                    Tables Manager
+                </div>
+                <div class="nav-item" onclick="showPage('rls')">
+                    <span class="nav-icon">🔒</span>
+                    RLS Policies
+                </div>
+                <div class="nav-item" onclick="showPage('functions')">
+                    <span class="nav-icon">⚡</span>
+                    Functions
+                </div>
+                <div class="nav-item" onclick="showPage('triggers')">
+                    <span class="nav-icon">🎯</span>
+                    Triggers
+                </div>
+                <div class="nav-item" onclick="showPage('flow')">
+                    <span class="nav-icon">🔄</span>
+                    Logic Flow
+                </div>
+                <div class="nav-item" onclick="showPage('conflicts')">
+                    <span class="nav-icon">⚠️</span>
+                    Conflict Resolution
+                </div>
+                <div class="nav-item" onclick="showPage('validation')">
+                    <span class="nav-icon">✅</span>
+                    Validation
+                </div>
+                <div class="nav-item" onclick="showPage('migration')">
+                    <span class="nav-icon">🚀</span>
+                    Migration Tools
+                </div>
+            </div>
+
+            <div class="content-area">
+                <!-- Connection Page -->
+                <div id="connection" class="page active">
+                    <div class="section-header">
+                        <h2>Database Connection</h2>
+                        <p>Connect to your Supabase project to manage database schemas</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>🔐 Supabase Configuration</h3>
+                        <div class="form-group">
+                            <label>Supabase Project URL</label>
+                            <input type="url" id="supabaseUrl" placeholder="https://xxxxx.supabase.co">
+                        </div>
+                        <div class="form-group">
+                            <label>Service Role Key (API Key)</label>
+                            <input type="password" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIs...">
+                        </div>
+                        <div class="form-group">
+                            <label>Database Password</label>
+                            <input type="password" id="dbPassword" placeholder="Your database password">
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="testConnection()">
+                                <span>🔍</span> Test Connection
+                            </button>
+                            <button class="btn btn-success" onclick="connectDatabase()">
+                                <span>✓</span> Connect & Load Schema
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>📁 Hub Application Configuration</h3>
+                        <p style="color: #64748b; margin-bottom: 15px;">Define the 12 hub applications in your unified database</p>
+                        <div class="form-group">
+                            <label>Hub Applications (comma-separated)</label>
+                            <input type="text" id="hubNames" value="CRM, Inventory, Sales, HR, Finance, Marketing, Support, Analytics, Operations, Projects, Compliance, Reporting" placeholder="Hub1, Hub2, Hub3...">
+                        </div>
+                        <button class="btn btn-primary" onclick="loadHubConfiguration()">
+                            <span>📋</span> Load Hub Configuration
+                        </button>
+                    </div>
+
+                    <div id="connectionStatus"></div>
+                </div>
+
+                <!-- Tables Manager Page -->
+                <div id="tables" class="page">
+                    <div class="section-header">
+                        <h2>Tables Manager</h2>
+                        <p>Generate, create, edit and manage 100+ tables across 12 hub applications</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>🔍 Filter & Search</h3>
+                        <div class="hub-selector" id="hubFilter">
+                            <!-- Dynamic hub filters will be inserted here -->
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="tableSearch" placeholder="Search tables by name..." onkeyup="filterTables()">
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>📊 Database Tables</h3>
+                            <button class="btn btn-primary" onclick="showCreateTableModal()">
+                                <span>➕</span> Create New Table
+                            </button>
+                        </div>
+                        <div class="table-list" id="tablesList">
+                            <!-- Dynamic table items will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RLS Policies Page -->
+                <div id="rls" class="page">
+                    <div class="section-header">
+                        <h2>Row Level Security (RLS) Policies</h2>
+                        <p>Manage and validate RLS policies for secure data access control</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>🔒 RLS Policy Generator</h3>
+                        <div class="form-group">
+                            <label>Select Table</label>
+                            <select id="rlsTable">
+                                <option value="">Choose a table...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Policy Name</label>
+                            <input type="text" id="rlsPolicyName" placeholder="e.g., users_select_own_data">
+                        </div>
+                        <div class="form-group">
+                            <label>Policy Type</label>
+                            <select id="rlsPolicyType">
+                                <option value="SELECT">SELECT</option>
+                                <option value="INSERT">INSERT</option>
+                                <option value="UPDATE">UPDATE</option>
+                                <option value="DELETE">DELETE</option>
+                                <option value="ALL">ALL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Policy Expression</label>
+                            <textarea id="rlsExpression" placeholder="auth.uid() = user_id"></textarea>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="generateRLSPolicy()">
+                                <span>⚡</span> Generate SQL
+                            </button>
+                            <button class="btn btn-success" onclick="applyRLSPolicy()">
+                                <span>✓</span> Apply Policy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>📋 Active RLS Policies</h3>
+                        <div id="rlsPolicyList">
+                            <!-- Dynamic RLS policies will be shown here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Functions Page -->
+                <div id="functions" class="page">
+                    <div class="section-header">
+                        <h2>Database Functions</h2>
+                        <p>Create and manage PostgreSQL functions for business logic</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>⚡ Function Generator</h3>
+                        <div class="form-group">
+                            <label>Function Name</label>
+                            <input type="text" id="functionName" placeholder="e.g., calculate_total_revenue">
+                        </div>
+                        <div class="form-group">
+                            <label>Return Type</label>
+                            <select id="functionReturnType">
+                                <option value="void">void</option>
+                                <option value="integer">integer</option>
+                                <option value="text">text</option>
+                                <option value="boolean">boolean</option>
+                                <option value="json">json</option>
+                                <option value="jsonb">jsonb</option>
+                                <option value="table">table</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Function Parameters (one per line: name type)</label>
+                            <textarea id="functionParams" placeholder="user_id uuid&#10;start_date date&#10;end_date date"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Function Body (SQL/PL/pgSQL)</label>
+                            <textarea id="functionBody" style="min-height: 200px;" placeholder="BEGIN&#10;  RETURN (SELECT SUM(amount) FROM orders WHERE user_id = $1);&#10;END;"></textarea>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="generateFunction()">
+                                <span>⚡</span> Generate Function
+                            </button>
+                            <button class="btn btn-success" onclick="createFunction()">
+                                <span>✓</span> Create Function
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>📚 Function Library</h3>
+                        <div id="functionList">
+                            <!-- Dynamic function list will be shown here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Triggers Page -->
+                <div id="triggers" class="page">
+                    <div class="section-header">
+                        <h2>Database Triggers</h2>
+                        <p>Automate actions with database triggers</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>🎯 Trigger Builder</h3>
+                        <div class="form-group">
+                            <label>Trigger Name</label>
+                            <input type="text" id="triggerName" placeholder="e.g., update_timestamp_trigger">
+                        </div>
+                        <div class="form-group">
+                            <label>Target Table</label>
+                            <select id="triggerTable">
+                                <option value="">Choose a table...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Trigger Event</label>
+                            <select id="triggerEvent">
+                                <option value="INSERT">INSERT</option>
+                                <option value="UPDATE">UPDATE</option>
+                                <option value="DELETE">DELETE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Trigger Timing</label>
+                            <select id="triggerTiming">
+                                <option value="BEFORE">BEFORE</option>
+                                <option value="AFTER">AFTER</option>
+                                <option value="INSTEAD OF">INSTEAD OF</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Trigger Function Name</label>
+                            <input type="text" id="triggerFunctionName" placeholder="e.g., update_timestamp">
+                        </div>
+                        <div class="form-group">
+                            <label>Trigger Function Body</label>
+                            <textarea id="triggerFunctionBody" style="min-height: 150px;" placeholder="BEGIN&#10;  NEW.updated_at = NOW();&#10;  RETURN NEW;&#10;END;"></textarea>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="generateTrigger()">
+                                <span>🎯</span> Generate Trigger
+                            </button>
+                            <button class="btn btn-success" onclick="createTrigger()">
+                                <span>✓</span> Create Trigger
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>📋 Active Triggers</h3>
+                        <div id="triggerList">
+                            <!-- Dynamic trigger list will be shown here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logic Flow Page -->
+                <div id="flow" class="page">
+                    <div class="section-header">
+                        <h2>Database Logic Flow</h2>
+                        <p>Visualize and validate data flow across tables, functions, and triggers</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>🔄 Flow Analyzer</h3>
+                        <div class="form-group">
+                            <label>Select Starting Point</label>
+                            <select id="flowStartTable">
+                                <option value="">Choose a table...</option>
+                            </select>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="analyzeFlow()">
+                                <span>🔍</span> Analyze Flow
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportFlowDiagram()">
+                                <span>📥</span> Export Diagram
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>📊 Flow Visualization</h3>
+                        <div class="flow-diagram" id="flowDiagram">
+                            <div style="text-align: center; padding: 40px; color: #64748b;">
+                                <p>Select a table and click "Analyze Flow" to visualize data dependencies</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>🔗 Detected Dependencies</h3>
+                        <div id="flowDependencies">
+                            <!-- Dynamic dependencies will be shown here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conflict Resolution Page -->
+                <div id="conflicts" class="page">
+                    <div class="section-header">
+                        <h2>Conflict Resolution</h2>
+                        <p>Identify and resolve schema conflicts from merged hub applications</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>⚠️ Conflict Detection</h3>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="scanConflicts()">
+                                <span>🔍</span> Scan for Conflicts
+                            </button>
+                            <button class="btn btn-secondary" onclick="generateConflictReport()">
+                                <span>📄</span> Generate Report
+                            </button>
+                        </div>
+                        <div class="progress-bar" id="scanProgress" style="display: none;">
+                            <div class="progress-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>🔴 Detected Conflicts</h3>
+                        <div class="conflict-list" id="conflictList">
+                            <!-- Dynamic conflicts will be shown here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation Page -->
+                <div id="validation" class="page">
+                    <div class="section-header">
+                        <h2>Schema Validation</h2>
+                        <p>Validate database integrity, constraints, and relationships</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>✅ Validation Tools</h3>
+                        <div class="tabs">
+                            <div class="tab active" onclick="showValidationTab('schema')">Schema Structure</div>
+                            <div class="tab" onclick="showValidationTab('constraints')">Constraints</div>
+                            <div class="tab" onclick="showValidationTab('relations')">Relationships</div>
+                            <div class="tab" onclick="showValidationTab('performance')">Performance</div>
+                        </div>
+
+                        <div id="validationSchema" class="tab-content active">
+                            <div class="btn-group">
+                                <button class="btn btn-primary" onclick="validateSchema()">
+                                    <span>🔍</span> Validate Schema
+                                </button>
+                                <button class="btn btn-secondary" onclick="validateNamingConventions()">
+                                    <span>📝</span> Check Naming Conventions
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="validationConstraints" class="tab-content">
+                            <div class="btn-group">
+                                <button class="btn btn-primary" onclick="validateConstraints()">
+                                    <span>🔒</span> Validate Constraints
+                                </button>
+                                <button class="btn btn-secondary" onclick="findMissingIndexes()">
+                                    <span>⚡</span> Find Missing Indexes
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="validationRelations" class="tab-content">
+                            <div class="btn-group">
+                                <button class="btn btn-primary" onclick="validateRelationships()">
+                                    <span>🔗</span> Validate Relationships
+                                </button>
+                                <button class="btn btn-secondary" onclick="findOrphanedRecords()">
+                                    <span>🔍</span> Find Orphaned Records
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="validationPerformance" class="tab-content">
+                            <div class="btn-group">
+                                <button class="btn btn-primary" onclick="analyzePerformance()">
+                                    <span>📊</span> Analyze Performance
+                                </button>
+                                <button class="btn btn-secondary" onclick="suggestOptimizations()">
+                                    <span>💡</span> Suggest Optimizations
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>📋 Validation Results</h3>
+                        <div class="validation-result" id="validationResults">
+                            <div style="text-align: center; padding: 30px; color: #64748b;">
+                                <p>Run a validation check to see results</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Migration Tools Page -->
+                <div id="migration" class="page">
+                    <div class="section-header">
+                        <h2>Migration Tools</h2>
+                        <p>Generate and execute database migrations safely</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>🚀 Migration Generator</h3>
+                        <div class="form-group">
+                            <label>Migration Name</label>
+                            <input type="text" id="migrationName" placeholder="e.g., add_user_preferences_table">
+                        </div>
+                        <div class="form-group">
+                            <label>Migration Type</label>
+                            <select id="migrationType">
+                                <option value="create_table">Create Table</option>
+                                <option value="alter_table">Alter Table</option>
+                                <option value="drop_table">Drop Table</option>
+                                <option value="add_column">Add Column</option>
+                                <option value="modify_column">Modify Column</option>
+                                <option value="custom">Custom SQL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Migration SQL (Up)</label>
+                            <textarea id="migrationUp" style="min-height: 150px;" placeholder="-- SQL to apply migration"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Rollback SQL (Down)</label>
+                            <textarea id="migrationDown" style="min-height: 150px;" placeholder="-- SQL to rollback migration"></textarea>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="generateMigration()">
+                                <span>⚡</span> Generate Migration
+                            </button>
+                            <button class="btn btn-success" onclick="executeMigration()">
+                                <span>✓</span> Execute Migration
+                            </button>
+                            <button class="btn btn-danger" onclick="rollbackMigration()">
+                                <span>↩️</span> Rollback
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>📚 Migration History</h3>
+                        <div id="migrationHistory">
+                            <!-- Dynamic migration history will be shown here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Table Modal -->
+    <div id="createTableModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Table</h3>
+                <span class="close-modal" onclick="closeModal('createTableModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Table Name</label>
+                <input type="text" id="newTableName" placeholder="e.g., user_profiles">
+            </div>
+            <div class="form-group">
+                <label>Hub Application</label>
+                <select id="newTableHub">
+                    <option value="">Select hub...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Columns (JSON format)</label>
+                <textarea id="newTableColumns" style="min-height: 200px;" placeholder='[
+  {"name": "id", "type": "uuid", "primary": true, "default": "gen_random_uuid()"},
+  {"name": "created_at", "type": "timestamp", "default": "now()"},
+  {"name": "name", "type": "text", "nullable": false}
+]'></textarea>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="previewTableSQL()">
+                    <span>👁️</span> Preview SQL
+                </button>
+                <button class="btn btn-success" onclick="createNewTable()">
+                    <span>✓</span> Create Table
+                </button>
+            </div>
+            <div id="tableSQLPreview"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"19a393b54aab4d848a888fa7ccc6f857","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
