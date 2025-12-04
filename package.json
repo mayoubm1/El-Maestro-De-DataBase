@@ -17,7 +17,7 @@
     "conflict-resolution",
     "database-flow"
   ],
-  "author": "Your Name",
+  "author": "Mohamed Ayoub",
   "license": "MIT",
   "devDependencies": {
     "http-server": "^14.1.1"
