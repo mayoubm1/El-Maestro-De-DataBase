@@ -4,9 +4,9 @@
 // Global state
 const appState = {
     connected: false,
-    supabaseUrl: '',
-    supabaseKey: '',
-    dbPassword: '',
+    supabaseUrl: 'https://vrfyjirddfdnwuffzqhb.supabase.co',
+    supabaseKey: 'sbp_ebcdee0eecff08defda73625f56755a18a15dd0e',
+    dbPassword: 'postgresql://postgres:Maayoubm235152!?@db.vrfyjirddfdnwuffzqhb.supabase.co:5432/postgres',
     tables: [],
     hubs: [],
     selectedTables: [],
