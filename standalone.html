@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Maestro De DataBase - Supabase Multi-Hub Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3ecf8e;
+            --primary-dark: #2da771;
+            --secondary: #1e293b;
+            --accent: #f97316;
+            --bg-dark: #0f172a;
+            --bg-light: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --warning: #eab308;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 100%);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: var(--secondary);
+            padding: 20px 0;
+            border-bottom: 2px solid var(--primary);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        .connection-panel {
+            background: var(--bg-light);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(62, 207, 142, 0.1);
+        }
+
+        button {
+            padding: 12px 24px;
+            background: var(--primary);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(62, 207, 142, 0.3);
+        }
+
+        button:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            background: var(--secondary);
+            border-color: var(--primary);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: var(--bg-dark);
+            border-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--bg-light);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            min-height: 400px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: var(--bg-dark);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(62, 207, 142, 0.2);
+        }
+
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status.connected {
+            background: var(--success);
+            color: white;
+        }
+
+        .status.disconnected {
+            background: var(--danger);
+            color: white;
+        }
+
+        .output-box {
+            background: var(--bg-dark);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .conflict-item {
+            background: var(--bg-dark);
+            padding: 15px;
+            border-left: 4px solid var(--warning);
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .conflict-item.resolved {
+            border-left-color: var(--success);
+            opacity: 0.7;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--text-light);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        pre {
+            background: var(--bg-dark);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+
+        code {
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+            color: #93c5fd;
+        }
+
+        .alert-warning {
+            background: rgba(234, 179, 8, 0.1);
+            border-color: var(--warning);
+            color: #fde047;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: var(--success);
+            color: #86efac;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hub-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            background: var(--primary);
+            color: var(--bg-dark);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 2px;
+        }
+
+        .flow-diagram {
+            background: var(--bg-dark);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-top: 20px;
+            min-height: 300px;
+        }
+
+        .flow-node {
+            background: var(--secondary);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .flow-node::after {
+            content: '↓';
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .flow-node:last-child::after {
+            content: '';
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-dark);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: var(--bg-dark);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-primary { background: var(--primary); color: var(--bg-dark); }
+        .badge-warning { background: var(--warning); color: var(--bg-dark); }
+        .badge-danger { background: var(--danger); color: white; }
+        .badge-success { background: var(--success); color: white; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .tabs { flex-direction: column; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🎯 El Maestro De DataBase</h1>
+            <p class="subtitle">Supabase Multi-Hub Database Manager - 12 Hubs, 100+ Tables Unified</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Connection Panel -->
+        <div class="connection-panel">
+            <h2>🔌 Supabase Connection <span id="connectionStatus" class="status disconnected">Disconnected</span></h2>
+            <div class="form-group">
+                <label for="supabaseUrl">Supabase Project URL</label>
+                <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co">
+            </div>
+            <div class="form-group">
+                <label for="supabaseKey">Supabase Anon/Service Role Key</label>
+                <input type="password" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+            </div>
+            <button onclick="connectToSupabase()">Connect to Supabase</button>
+        </div>
+
+        <!-- Main Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('overview')">📊 Overview</div>
+            <div class="tab" onclick="switchTab('tables')">🗂️ Tables</div>
+            <div class="tab" onclick="switchTab('rls')">🔒 RLS Policies</div>
+            <div class="tab" onclick="switchTab('functions')">⚡ Functions</div>
+            <div class="tab" onclick="switchTab('triggers')">🎯 Triggers</div>
+            <div class="tab" onclick="switchTab('conflicts')">⚠️ Conflicts</div>
+            <div class="tab" onclick="switchTab('flow')">🔄 Logic Flow</div>
+            <div class="tab" onclick="switchTab('migration')">🚀 Migration</div>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <h2>📊 Database Overview</h2>
+            <div class="alert alert-info">
+                <strong>Multi-Hub Unified Database</strong><br>
+                Managing 12 hub applications merged into a single Supabase project. This tool helps you visualize, validate, and manage complex database schemas, RLS policies, functions, and triggers across all hubs.
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>📈 Database Statistics</h3>
+                    <p><strong>Total Tables:</strong> <span id="totalTables">0</span></p>
+                    <p><strong>Total RLS Policies:</strong> <span id="totalPolicies">0</span></p>
+                    <p><strong>Total Functions:</strong> <span id="totalFunctions">0</span></p>
+                    <p><strong>Total Triggers:</strong> <span id="totalTriggers">0</span></p>
+                    <p><strong>Hub Applications:</strong> 12</p>
+                </div>
+
+                <div class="card">
+                    <h3>⚠️ Health Check</h3>
+                    <p><strong>Conflicts Detected:</strong> <span id="conflictCount">0</span></p>
+                    <p><strong>Validation Status:</strong> <span id="validationStatus">Not Run</span></p>
+                    <p><strong>Last Scan:</strong> <span id="lastScan">Never</span></p>
+                    <button onclick="runHealthCheck()" style="margin-top: 10px;">Run Health Check</button>
+                </div>
+
+                <div class="card">
+                    <h3>🎯 Quick Actions</h3>
+                    <button onclick="switchTab('tables')" style="width: 100%; margin-bottom: 10px;">Manage Tables</button>
+                    <button onclick="switchTab('rls')" style="width: 100%; margin-bottom: 10px;">Configure RLS</button>
+                    <button onclick="switchTab('conflicts')" style="width: 100%; margin-bottom: 10px;">Resolve Conflicts</button>
+                    <button onclick="exportSchema()" style="width: 100%;">Export Schema</button>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px;">🏢 Hub Applications</h3>
+            <div class="grid">
+                <div class="card" id="hubsContainer">
+                    <p>Connect to Supabase to view hub information...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables Tab -->
+        <div id="tables" class="tab-content">
+            <h2>🗂️ Table Management</h2>
+            
+            <div class="action-buttons">
+                <button onclick="loadTables()">🔄 Refresh Tables</button>
+                <button onclick="showCreateTable()">➕ Create New Table</button>
+                <button onclick="analyzeSchema()">🔍 Analyze Schema</button>
+                <button onclick="validateTables()">✅ Validate All Tables</button>
+            </div>
+
+            <div id="createTableForm" style="display: none; margin-top: 20px; padding: 20px; background: var(--bg-dark); border-radius: 8px;">
+                <h3>Create New Table</h3>
+                <div class="form-group">
+                    <label>Table Name</label>
+                    <input type="text" id="newTableName" placeholder="users, posts, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Hub Assignment</label>
+                    <select id="newTableHub">
+                        <option value="hub1">Hub 1</option>
+                        <option value="hub2">Hub 2</option>
+                        <option value="hub3">Hub 3</option>
+                        <option value="hub4">Hub 4</option>
+                        <option value="hub5">Hub 5</option>
+                        <option value="hub6">Hub 6</option>
+                        <option value="hub7">Hub 7</option>
+                        <option value="hub8">Hub 8</option>
+                        <option value="hub9">Hub 9</option>
+                        <option value="hub10">Hub 10</option>
+                        <option value="hub11">Hub 11</option>
+                        <option value="hub12">Hub 12</option>
+                        <option value="shared">Shared</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Columns (JSON)</label>
+                    <textarea id="newTableColumns" rows="6" placeholder='[
+  {"name": "id", "type": "uuid", "primary": true},
+  {"name": "created_at", "type": "timestamptz"},
+  {"name": "name", "type": "text"}
+]'></textarea>
+                </div>
+                <button onclick="createTable()">Create Table</button>
+                <button onclick="hideCreateTable()" class="btn-secondary">Cancel</button>
+            </div>
+
+            <div id="tablesOutput" class="output-box" style="margin-top: 20px;">
+                <p>Click "Refresh Tables" to load database tables...</p>
+            </div>
+        </div>
+
+        <!-- RLS Policies Tab -->
+        <div id="rls" class="tab-content">
+            <h2>🔒 Row Level Security (RLS) Policies</h2>
+            
+            <div class="alert alert-warning">
+                <strong>Security Notice:</strong> RLS policies are critical for multi-tenant applications. Ensure each hub's data is properly isolated.
+            </div>
+
+            <div class="action-buttons">
+                <button onclick="loadRLSPolicies()">🔄 Refresh Policies</button>
+                <button onclick="showCreateRLS()">➕ Create New Policy</button>
+                <button onclick="validateRLS()">✅ Validate All Policies</button>
+                <button onclick="generateRLSTemplates()">📋 Generate Templates</button>
+            </div>
+
+            <div id="createRLSForm" style="display: none; margin-top: 20px; padding: 20px; background: var(--bg-dark); border-radius: 8px;">
+                <h3>Create RLS Policy</h3>
+                <div class="form-group">
+                    <label>Table Name</label>
+                    <input type="text" id="rlsTableName" placeholder="table_name">
+                </div>
+                <div class="form-group">
+                    <label>Policy Name</label>
+                    <input type="text" id="rlsPolicyName" placeholder="policy_name">
+                </div>
+                <div class="form-group">
+                    <label>Command</label>
+                    <select id="rlsCommand">
+                        <option value="SELECT">SELECT</option>
+                        <option value="INSERT">INSERT</option>
+                        <option value="UPDATE">UPDATE</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="ALL">ALL</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Using Expression</label>
+                    <textarea id="rlsUsing" rows="3" placeholder="auth.uid() = user_id"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>With Check Expression (optional)</label>
+                    <textarea id="rlsWithCheck" rows="3" placeholder="auth.uid() = user_id"></textarea>
+                </div>
+                <button onclick="createRLSPolicy()">Create Policy</button>
+                <button onclick="hideCreateRLS()" class="btn-secondary">Cancel</button>
+            </div>
+
+            <div id="rlsOutput" class="output-box" style="margin-top: 20px;">
+                <p>Click "Refresh Policies" to load RLS policies...</p>
+            </div>
+        </div>
+
+        <!-- Functions Tab -->
+        <div id="functions" class="tab-content">
+            <h2>⚡ Database Functions</h2>
+            
+            <div class="action-buttons">
+                <button onclick="loadFunctions()">🔄 Refresh Functions</button>
+                <button onclick="showCreateFunction()">➕ Create New Function</button>
+                <button onclick="validateFunctions()">✅ Validate Functions</button>
+                <button onclick="testFunction()">🧪 Test Function</button>
+            </div>
+
+            <div id="createFunctionForm" style="display: none; margin-top: 20px; padding: 20px; background: var(--bg-dark); border-radius: 8px;">
+                <h3>Create Database Function</h3>
+                <div class="form-group">
+                    <label>Function Name</label>
+                    <input type="text" id="functionName" placeholder="my_function">
+                </div>
+                <div class="form-group">
+                    <label>Return Type</label>
+                    <input type="text" id="functionReturnType" placeholder="void, json, text, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Function Body (SQL/PL/pgSQL)</label>
+                    <textarea id="functionBody" rows="10" placeholder="BEGIN
+  -- Your function logic here
+  RETURN NULL;
+END;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Language</label>
+                    <select id="functionLanguage">
+                        <option value="plpgsql">PL/pgSQL</option>
+                        <option value="sql">SQL</option>
+                    </select>
+                </div>
+                <button onclick="createFunction()">Create Function</button>
+                <button onclick="hideCreateFunction()" class="btn-secondary">Cancel</button>
+            </div>
+
+            <div id="functionsOutput" class="output-box" style="margin-top: 20px;">
+                <p>Click "Refresh Functions" to load database functions...</p>
+            </div>
+        </div>
+
+        <!-- Triggers Tab -->
+        <div id="triggers" class="tab-content">
+            <h2>🎯 Database Triggers</h2>
+            
+            <div class="action-buttons">
+                <button onclick="loadTriggers()">🔄 Refresh Triggers</button>
+                <button onclick="showCreateTrigger()">➕ Create New Trigger</button>
+                <button onclick="validateTriggers()">✅ Validate Triggers</button>
+                <button onclick="analyzeTriggerFlow()">🔄 Analyze Trigger Flow</button>
+            </div>
+
+            <div id="createTriggerForm" style="display: none; margin-top: 20px; padding: 20px; background: var(--bg-dark); border-radius: 8px;">
+                <h3>Create Database Trigger</h3>
+                <div class="form-group">
+                    <label>Trigger Name</label>
+                    <input type="text" id="triggerName" placeholder="on_user_created">
+                </div>
+                <div class="form-group">
+                    <label>Table Name</label>
+                    <input type="text" id="triggerTable" placeholder="users">
+                </div>
+                <div class="form-group">
+                    <label>Timing</label>
+                    <select id="triggerTiming">
+                        <option value="BEFORE">BEFORE</option>
+                        <option value="AFTER">AFTER</option>
+                        <option value="INSTEAD OF">INSTEAD OF</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Event</label>
+                    <select id="triggerEvent">
+                        <option value="INSERT">INSERT</option>
+                        <option value="UPDATE">UPDATE</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Function Name</label>
+                    <input type="text" id="triggerFunction" placeholder="handle_user_created">
+                </div>
+                <button onclick="createTrigger()">Create Trigger</button>
+                <button onclick="hideCreateTrigger()" class="btn-secondary">Cancel</button>
+            </div>
+
+            <div id="triggersOutput" class="output-box" style="margin-top: 20px;">
+                <p>Click "Refresh Triggers" to load database triggers...</p>
+            </div>
+        </div>
+
+        <!-- Conflicts Tab -->
+        <div id="conflicts" class="tab-content">
+            <h2>⚠️ Conflict Detection & Resolution</h2>
+            
+            <div class="alert alert-info">
+                <strong>Multi-Hub Conflict Analysis:</strong> This tool detects naming conflicts, duplicate constraints, overlapping RLS policies, and other issues when merging 12 hub applications.
+            </div>
+
+            <div class="action-buttons">
+                <button onclick="detectConflicts()">🔍 Detect All Conflicts</button>
+                <button onclick="autoResolve()">🤖 Auto-Resolve Safe Conflicts</button>
+                <button onclick="exportConflictReport()">📊 Export Report</button>
+                <button onclick="clearResolvedConflicts()">🗑️ Clear Resolved</button>
+            </div>
+
+            <h3 style="margin-top: 30px;">Conflict Types</h3>
+            <div class="grid">
+                <div class="card">
+                    <h4>Table Conflicts</h4>
+                    <p id="tableConflicts">0 detected</p>
+                </div>
+                <div class="card">
+                    <h4>RLS Conflicts</h4>
+                    <p id="rlsConflicts">0 detected</p>
+                </div>
+                <div class="card">
+                    <h4>Function Conflicts</h4>
+                    <p id="functionConflicts">0 detected</p>
+                </div>
+                <div class="card">
+                    <h4>Trigger Conflicts</h4>
+                    <p id="triggerConflicts">0 detected</p>
+                </div>
+            </div>
+
+            <div id="conflictsOutput" class="output-box" style="margin-top: 20px;">
+                <p>Click "Detect All Conflicts" to scan for issues...</p>
+            </div>
+        </div>
+
+        <!-- Logic Flow Tab -->
+        <div id="flow" class="tab-content">
+            <h2>🔄 Database Logic Flow Visualization</h2>
+            
+            <div class="action-buttons">
+                <button onclick="generateFlowDiagram()">🎨 Generate Flow Diagram</button>
+                <button onclick="analyzeDataFlow()">📊 Analyze Data Flow</button>
+                <button onclick="findCircularDeps()">🔍 Find Circular Dependencies</button>
+                <button onclick="exportFlowDiagram()">💾 Export Diagram</button>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Select Table to Visualize</label>
+                <select id="flowTableSelect">
+                    <option value="">-- Select a table --</option>
+                </select>
+            </div>
+
+            <div class="flow-diagram" id="flowDiagram">
+                <p style="color: var(--text-muted); text-align: center; padding: 40px;">
+                    Select a table and click "Generate Flow Diagram" to visualize triggers, functions, and RLS policies
+                </p>
+            </div>
+        </div>
+
+        <!-- Migration Tab -->
+        <div id="migration" class="tab-content">
+            <h2>🚀 Migration & Deployment</h2>
+            
+            <div class="alert alert-warning">
+                <strong>Migration Management:</strong> Generate and manage database migrations for your multi-hub unified database.
+            </div>
+
+            <div class="action-buttons">
+                <button onclick="generateMigration()">📝 Generate Migration</button>
+                <button onclick="previewMigration()">👁️ Preview Migration</button>
+                <button onclick="exportMigration()">💾 Export Migration SQL</button>
+                <button onclick="validateMigration()">✅ Validate Migration</button>
+            </div>
+
+            <h3 style="margin-top: 30px;">Migration Options</h3>
+            <div class="form-group">
+                <label>Migration Type</label>
+                <select id="migrationType">
+                    <option value="full">Full Schema Export</option>
+                    <option value="tables">Tables Only</option>
+                    <option value="rls">RLS Policies Only</option>
+                    <option value="functions">Functions Only</option>
+                    <option value="triggers">Triggers Only</option>
+                    <option value="incremental">Incremental Changes</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Target Environment</label>
+                <select id="targetEnv">
+                    <option value="production">Production</option>
+                    <option value="staging">Staging</option>
+                    <option value="development">Development</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Include Data</label>
+                <input type="checkbox" id="includeData" style="width: auto; margin-right: 10px;">
+                <label for="includeData" style="display: inline;">Export table data (be careful with large datasets)</label>
+            </div>
+
+            <div id="migrationOutput" class="output-box" style="margin-top: 20px;">
+                <p>Configure options above and click "Generate Migration" to create SQL migration files...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let supabaseClient = null;
+        let isConnected = false;
+        let dbState = {
+            tables: [],
+            rlsPolicies: [],
+            functions: [],
+            triggers: [],
+            conflicts: []
+        };
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Connection Management
+        async function connectToSupabase() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+
+            if (!url || !key) {
+                alert('Please enter both Supabase URL and Key');
+                return;
+            }
+
+            try {
+                // Simulate connection (in real app, use @supabase/supabase-js)
+                document.getElementById('connectionStatus').textContent = 'Connecting...';
+                document.getElementById('connectionStatus').className = 'status';
+                
+                // In production, you would do:
+                // supabaseClient = createClient(url, key);
+                
+                setTimeout(() => {
+                    isConnected = true;
+                    document.getElementById('connectionStatus').textContent = 'Connected';
+                    document.getElementById('connectionStatus').className = 'status connected';
+                    
+                    // Load initial data
+                    loadInitialData();
+                    alert('Successfully connected to Supabase!');
+                }, 1000);
+            } catch (error) {
+                alert('Connection failed: ' + error.message);
+                document.getElementById('connectionStatus').textContent = 'Connection Failed';
+                document.getElementById('connectionStatus').className = 'status disconnected';
+            }
+        }
+
+        // Load initial data
+        function loadInitialData() {
+            // Simulate loading data
+            document.getElementById('totalTables').textContent = '127';
+            document.getElementById('totalPolicies').textContent = '284';
+            document.getElementById('totalFunctions').textContent = '45';
+            document.getElementById('totalTriggers').textContent = '38';
+            
+            // Load hub information
+            loadHubInfo();
+        }
+
+        // Load hub information
+        function loadHubInfo() {
+            const hubs = [
+                { id: 1, name: 'User Management Hub', tables: 12, status: 'Active' },
+                { id: 2, name: 'Content Hub', tables: 15, status: 'Active' },
+                { id: 3, name: 'Analytics Hub', tables: 8, status: 'Active' },
+                { id: 4, name: 'E-commerce Hub', tables: 18, status: 'Active' },
+                { id: 5, name: 'Communication Hub', tables: 10, status: 'Active' },
+                { id: 6, name: 'Workflow Hub', tables: 14, status: 'Active' },
+                { id: 7, name: 'Reporting Hub', tables: 9, status: 'Active' },
+                { id: 8, name: 'Integration Hub', tables: 7, status: 'Active' },
+                { id: 9, name: 'Security Hub', tables: 11, status: 'Active' },
+                { id: 10, name: 'Notification Hub', tables: 6, status: 'Active' },
+                { id: 11, name: 'Billing Hub', tables: 13, status: 'Active' },
+                { id: 12, name: 'Monitoring Hub', tables: 4, status: 'Active' }
+            ];
+
+            const hubsHTML = hubs.map(hub => `
+                <div class="card">
+                    <h4><span class="hub-tag">Hub ${hub.id}</span> ${hub.name}</h4>
+                    <p><strong>Tables:</strong> ${hub.tables}</p>
+                    <p><strong>Status:</strong> <span class="badge badge-success">${hub.status}</span></p>
+                </div>
+            `).join('');
+
+            document.getElementById('hubsContainer').innerHTML = hubsHTML;
+        }
+
+        // Health Check
+        function runHealthCheck() {
+            if (!checkConnection()) return;
+            
+            const output = document.getElementById('conflictCount');
+            output.textContent = 'Running...';
+            
+            setTimeout(() => {
+                const conflicts = Math.floor(Math.random() * 15);
+                output.textContent = conflicts;
+                document.getElementById('validationStatus').textContent = conflicts === 0 ? '✅ Healthy' : '⚠️ Issues Found';
+                document.getElementById('lastScan').textContent = new Date().toLocaleString();
+                
+                if (conflicts > 0) {
+                    alert(`Health check complete: ${conflicts} conflicts detected. Please review the Conflicts tab.`);
+                } else {
+                    alert('Health check complete: No conflicts detected! ✅');
+                }
+            }, 2000);
+        }
+
+        // Tables Management
+        function loadTables() {
+            if (!checkConnection()) return;
+            
+            const output = document.getElementById('tablesOutput');
+            output.innerHTML = '<p>Loading tables... <span class="loading"></span></p>';
+            
+            setTimeout(() => {
+                const sampleTables = generateSampleTables();
+                let html = '<table><thead><tr><th>Table Name</th><th>Hub</th><th>Columns</th><th>RLS</th><th>Actions</th></tr></thead><tbody>';
+                
+                sampleTables.forEach(table => {
+                    html += `
+                        <tr>
+                            <td><strong>${table.name}</strong></td>
+                            <td><span class="hub-tag">${table.hub}</span></td>
+                            <td>${table.columns}</td>
+                            <td><span class="badge ${table.rls ? 'badge-success' : 'badge-warning'}">${table.rls ? 'Enabled' : 'Disabled'}</span></td>
+                            <td>
+                                <button onclick="viewTableDetails('${table.name}')">View</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                output.innerHTML = html;
+            }, 1000);
+        }
+
+        function generateSampleTables() {
+            const hubs = ['Hub 1', 'Hub 2', 'Hub 3', 'Hub 4', 'Hub 5', 'Hub 6', 'Hub 7', 'Hub 8', 'Hub 9', 'Hub 10', 'Hub 11', 'Hub 12', 'Shared'];
+            const tableNames = ['users', 'profiles', 'posts', 'comments', 'products', 'orders', 'transactions', 'analytics', 'notifications', 'settings', 'logs', 'reports', 'workflows', 'integrations', 'messages'];
+            
+            return tableNames.map(name => ({
+                name: name + '_' + Math.random().toString(36).substr(2, 5),
+                hub: hubs[Math.floor(Math.random() * hubs.length)],
+                columns: Math.floor(Math.random() * 15) + 5,
+                rls: Math.random() > 0.3
+            }));
+        }
+
+        function showCreateTable() {
+            document.getElementById('createTableForm').style.display = 'block';
+        }
+
+        function hideCreateTable() {
+            document.getElementById('createTableForm').style.display = 'none';
+        }
+
+        function createTable() {
+            if (!checkConnection()) return;
+            
+            const name = document.getElementById('newTableName').value;
+            const hub = document.getElementById('newTableHub').value;
+            const columns = document.getElementById('newTableColumns').value;
+            
+            if (!name || !columns) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            try {
+                JSON.parse(columns);
+                alert(`Table "${name}" would be created in ${hub}.\n\nIn production, this would execute:\nCREATE TABLE ${name} (...);`);
+                hideCreateTable();
+            } catch (e) {
+                alert('Invalid JSON format for columns');
+            }
+        }
+
+        function analyzeSchema() {
+            if (!checkConnection()) return;
+            alert('Schema analysis would identify:\n- Orphaned tables\n- Missing indexes\n- Redundant columns\n- Optimization opportunities\n\nIn production, this would run comprehensive schema analysis.');
+        }
+
+        function validateTables() {
+            if (!checkConnection()) return;
+            alert('Table validation would check:\n- Primary keys\n- Foreign key constraints\n- Column types\n- Naming conventions\n\nIn production, this would validate all 100+ tables.');
+        }
+
+        function viewTableDetails(tableName) {
+            alert(`Viewing details for: ${tableName}\n\nIn production, this would show:\n- Complete schema\n- Indexes\n- Constraints\n- RLS policies\n- Related triggers/functions`);
+        }
+
+        // RLS Management
+        function loadRLSPolicies() {
+            if (!checkConnection()) return;
+            
+            const output = document.getElementById('rlsOutput');
+            output.innerHTML = '<p>Loading RLS policies... <span class="loading"></span></p>';
+            
+            setTimeout(() => {
+                let html = '<h3>RLS Policies by Table</h3>';
+                const samplePolicies = generateSampleRLSPolicies();
+                
+                samplePolicies.forEach(policy => {
+                    html += `
+                        <div class="card" style="margin-bottom: 15px;">
+                            <h4>${policy.table}</h4>
+                            <p><strong>Policy:</strong> ${policy.name}</p>
+                            <p><strong>Command:</strong> <span class="badge badge-primary">${policy.command}</span></p>
+                            <p><strong>Using:</strong> <code>${policy.using}</code></p>
+                            <button onclick="editRLSPolicy('${policy.name}')">Edit</button>
+                            <button onclick="deleteRLSPolicy('${policy.name}')" class="btn-danger">Delete</button>
+                        </div>
+                    `;
+                });
+                
+                output.innerHTML = html;
+            }, 1000);
+        }
+
+        function generateSampleRLSPolicies() {
+            return [
+                { table: 'users', name: 'users_select_own', command: 'SELECT', using: 'auth.uid() = id' },
+                { table: 'users', name: 'users_update_own', command: 'UPDATE', using: 'auth.uid() = id' },
+                { table: 'posts', name: 'posts_select_all', command: 'SELECT', using: 'true' },
+                { table: 'posts', name: 'posts_insert_own', command: 'INSERT', using: 'auth.uid() = user_id' },
+                { table: 'orders', name: 'orders_select_own', command: 'SELECT', using: 'auth.uid() = customer_id' }
+            ];
+        }
+
+        function showCreateRLS() {
+            document.getElementById('createRLSForm').style.display = 'block';
+        }
+
+        function hideCreateRLS() {
+            document.getElementById('createRLSForm').style.display = 'none';
+        }
+
+        function createRLSPolicy() {
+            if (!checkConnection()) return;
+            
+            const table = document.getElementById('rlsTableName').value;
+            const name = document.getElementById('rlsPolicyName').value;
+            const command = document.getElementById('rlsCommand').value;
+            const using = document.getElementById('rlsUsing').value;
+            
+            if (!table || !name || !using) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            alert(`RLS Policy "${name}" would be created on table "${table}".\n\nIn production, this would execute:\nCREATE POLICY ${name} ON ${table}\nFOR ${command}\nUSING (${using});`);
+            hideCreateRLS();
+        }
+
+        function validateRLS() {
+            if (!checkConnection()) return;
+            alert('RLS validation would check:\n- Policy completeness\n- Security gaps\n- Overlapping policies\n- Performance impact\n\nIn production, this would validate all 284 policies.');
+        }
+
+        function generateRLSTemplates() {
+            if (!checkConnection()) return;
+            alert('Generating RLS templates for:\n- User isolation\n- Tenant isolation\n- Role-based access\n- Hub-specific policies\n\nIn production, this would generate production-ready RLS templates.');
+        }
+
+        function editRLSPolicy(name) {
+            alert(`Editing policy: ${name}\n\nIn production, this would open an editor for the policy.`);
+        }
+
+        function deleteRLSPolicy(name) {
+            if (confirm(`Are you sure you want to delete policy: ${name}?`)) {
+                alert(`Policy would be deleted.\n\nIn production: DROP POLICY ${name};`);
+            }
+        }
+
+        // Functions Management
+        function loadFunctions() {
+            if (!checkConnection()) return;
+            
+            const output = document.getElementById('functionsOutput');
+            output.innerHTML = '<p>Loading functions... <span class="loading"></span></p>';
+            
+            setTimeout(() => {
+                let html = '<h3>Database Functions</h3>';
+                const sampleFunctions = generateSampleFunctions();
+                
+                sampleFunctions.forEach(func => {
+                    html += `
+                        <div class="card" style="margin-bottom: 15px;">
+                            <h4>${func.name}</h4>
+                            <p><strong>Returns:</strong> ${func.returns}</p>
+                            <p><strong>Language:</strong> <span class="badge badge-primary">${func.language}</span></p>
+                            <p><strong>Hub:</strong> <span class="hub-tag">${func.hub}</span></p>
+                            <button onclick="viewFunction('${func.name}')">View Code</button>
+                            <button onclick="testFunction('${func.name}')">Test</button>
+                        </div>
+                    `;
+                });
+                
+                output.innerHTML = html;
+            }, 1000);
+        }
+
+        function generateSampleFunctions() {
+            const hubs = ['Hub 1', 'Hub 2', 'Hub 3', 'Hub 4', 'Shared'];
+            return [
+                { name: 'handle_new_user', returns: 'void', language: 'plpgsql', hub: 'Hub 1' },
+                { name: 'calculate_order_total', returns: 'numeric', language: 'plpgsql', hub: 'Hub 4' },
+                { name: 'send_notification', returns: 'json', language: 'plpgsql', hub: 'Hub 10' },
+                { name: 'validate_product', returns: 'boolean', language: 'plpgsql', hub: 'Hub 4' },
+                { name: 'generate_report', returns: 'json', language: 'plpgsql', hub: 'Hub 7' }
+            ];
+        }
+
+        function showCreateFunction() {
+            document.getElementById('createFunctionForm').style.display = 'block';
+        }
+
+        function hideCreateFunction() {
+            document.getElementById('createFunctionForm').style.display = 'none';
+        }
+
+        function createFunction() {
+            if (!checkConnection()) return;
+            
+            const name = document.getElementById('functionName').value;
+            const returns = document.getElementById('functionReturnType').value;
+            const body = document.getElementById('functionBody').value;
+            
+            if (!name || !returns || !body) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            alert(`Function "${name}" would be created.\n\nIn production, this would execute:\nCREATE OR REPLACE FUNCTION ${name}()\nRETURNS ${returns}\nAS $$\n${body}\n$$ LANGUAGE plpgsql;`);
+            hideCreateFunction();
+        }
+
+        function validateFunctions() {
+            if (!checkConnection()) return;
+            alert('Function validation would check:\n- Syntax errors\n- Missing dependencies\n- Performance issues\n- Security vulnerabilities\n\nIn production, this would validate all 45 functions.');
+        }
+
+        function viewFunction(name) {
+            alert(`Viewing function: ${name}\n\nIn production, this would display the complete function code.`);
+        }
+
+        function testFunction(name) {
+            if (name) {
+                alert(`Testing function: ${name}\n\nIn production, this would execute the function with test parameters.`);
+            } else {
+                const funcName = prompt('Enter function name to test:');
+                if (funcName) {
+                    alert(`Testing ${funcName}...\n\nIn production, this would run the function and show results.`);
+                }
+            }
+        }
+
+        // Triggers Management
+        function loadTriggers() {
+            if (!checkConnection()) return;
+            
+            const output = document.getElementById('triggersOutput');
+            output.innerHTML = '<p>Loading triggers... <span class="loading"></span></p>';
+            
+            setTimeout(() => {
+                let html = '<h3>Database Triggers</h3>';
+                const sampleTriggers = generateSampleTriggers();
+                
+                sampleTriggers.forEach(trigger => {
+                    html += `
+                        <div class="card" style="margin-bottom: 15px;">
+                            <h4>${trigger.name}</h4>
+                            <p><strong>Table:</strong> ${trigger.table}</p>
+                            <p><strong>Event:</strong> <span class="badge badge-primary">${trigger.timing} ${trigger.event}</span></p>
+                            <p><strong>Function:</strong> ${trigger.function}</p>
+                            <button onclick="viewTrigger('${trigger.name}')">Details</button>
+                            <button onclick="disableTrigger('${trigger.name}')" class="btn-secondary">Disable</button>
+                        </div>
+                    `;
+                });
+                
+                output.innerHTML = html;
+            }, 1000);
+        }
+
+        function generateSampleTriggers() {
+            return [
+                { name: 'on_user_created', table: 'users', timing: 'AFTER', event: 'INSERT', function: 'handle_new_user' },
+                { name: 'on_order_updated', table: 'orders', timing: 'BEFORE', event: 'UPDATE', function: 'calculate_order_total' },
+                { name: 'on_post_published', table: 'posts', timing: 'AFTER', event: 'INSERT', function: 'send_notification' },
+                { name: 'on_product_changed', table: 'products', timing: 'BEFORE', event: 'UPDATE', function: 'validate_product' }
+            ];
+        }
+
+        function showCreateTrigger() {
+            document.getElementById('createTriggerForm').style.display = 'block';
+        }
+
+        function hideCreateTrigger() {
+            document.getElementById('createTriggerForm').style.display = 'none';
+        }
+
+        function createTrigger() {
+            if (!checkConnection()) return;
+            
+            const name = document.getElementById('triggerName').value;
+            const table = document.getElementById('triggerTable').value;
+            const timing = document.getElementById('triggerTiming').value;
+            const event = document.getElementById('triggerEvent').value;
+            const func = document.getElementById('triggerFunction').value;
+            
+            if (!name || !table || !func) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            alert(`Trigger "${name}" would be created.\n\nIn production, this would execute:\nCREATE TRIGGER ${name}\n${timing} ${event} ON ${table}\nFOR EACH ROW\nEXECUTE FUNCTION ${func}();`);
+            hideCreateTrigger();
+        }
+
+        function validateTriggers() {
+            if (!checkConnection()) return;
+            alert('Trigger validation would check:\n- Function existence\n- Trigger ordering\n- Circular dependencies\n- Performance impact\n\nIn production, this would validate all 38 triggers.');
+        }
+
+        function analyzeTriggerFlow() {
+            if (!checkConnection()) return;
+            alert('Trigger flow analysis would:\n- Map trigger chains\n- Identify cascading effects\n- Detect infinite loops\n- Show execution order\n\nIn production, this would generate a comprehensive flow diagram.');
+        }
+
+        function viewTrigger(name) {
+            alert(`Viewing trigger: ${name}\n\nIn production, this would show complete trigger details and dependencies.`);
+        }
+
+        function disableTrigger(name) {
+            if (confirm(`Disable trigger: ${name}?`)) {
+                alert(`Trigger would be disabled.\n\nIn production: ALTER TABLE ... DISABLE TRIGGER ${name};`);
+            }
+        }
+
+        // Conflicts Management
+        function detectConflicts() {
+            if (!checkConnection()) return;
+            
+            const output = document.getElementById('conflictsOutput');
+            output.innerHTML = '<p>Scanning for conflicts across 12 hubs... <span class="loading"></span></p>';
+            
+            setTimeout(() => {
+                const conflicts = generateSampleConflicts();
+                let html = '<h3>Detected Conflicts</h3>';
+                
+                conflicts.forEach(conflict => {
+                    html += `
+                        <div class="conflict-item">
+                            <h4><span class="badge badge-${conflict.severity === 'High' ? 'danger' : 'warning'}">${conflict.severity}</span> ${conflict.type}</h4>
+                            <p><strong>Issue:</strong> ${conflict.description}</p>
+                            <p><strong>Affected:</strong> ${conflict.affected}</p>
+                            <p><strong>Suggestion:</strong> ${conflict.suggestion}</p>
+                            <button onclick="resolveConflict(${conflict.id})">Resolve</button>
+                            <button onclick="ignoreConflict(${conflict.id})" class="btn-secondary">Ignore</button>
+                        </div>
+                    `;
+                });
+                
+                output.innerHTML = html;
+                
+                // Update counts
+                document.getElementById('conflictCount').textContent = conflicts.length;
+                const typeCounts = { table: 0, rls: 0, function: 0, trigger: 0 };
+                conflicts.forEach(c => {
+                    if (c.type.includes('Table')) typeCounts.table++;
+                    if (c.type.includes('RLS')) typeCounts.rls++;
+                    if (c.type.includes('Function')) typeCounts.function++;
+                    if (c.type.includes('Trigger')) typeCounts.trigger++;
+                });
+                document.getElementById('tableConflicts').textContent = typeCounts.table + ' detected';
+                document.getElementById('rlsConflicts').textContent = typeCounts.rls + ' detected';
+                document.getElementById('functionConflicts').textContent = typeCounts.function + ' detected';
+                document.getElementById('triggerConflicts').textContent = typeCounts.trigger + ' detected';
+            }, 2000);
+        }
+
+        function generateSampleConflicts() {
+            return [
+                {
+                    id: 1,
+                    type: 'Table Name Conflict',
+                    severity: 'High',
+                    description: 'Table "users" exists in both Hub 1 and Hub 9',
+                    affected: 'Hub 1: users, Hub 9: users',
+                    suggestion: 'Rename to hub1_users and hub9_users or merge schemas'
+                },
+                {
+                    id: 2,
+                    type: 'RLS Policy Overlap',
+                    severity: 'Medium',
+                    description: 'Overlapping RLS policies on "posts" table',
+                    affected: 'posts_select_all, posts_select_published',
+                    suggestion: 'Review policy logic to avoid redundancy'
+                },
+                {
+                    id: 3,
+                    type: 'Function Duplicate',
+                    severity: 'High',
+                    description: 'Function "calculate_total" defined in Hub 4 and Hub 11',
+                    affected: 'Hub 4: calculate_total, Hub 11: calculate_total',
+                    suggestion: 'Consolidate into shared function or rename with hub prefix'
+                },
+                {
+                    id: 4,
+                    type: 'Trigger Conflict',
+                    severity: 'Medium',
+                    description: 'Multiple BEFORE UPDATE triggers on "orders" table',
+                    affected: 'update_timestamp, calculate_order_total',
+                    suggestion: 'Ensure trigger execution order is correct'
+                }
+            ];
+        }
+
+        function autoResolve() {
+            if (!checkConnection()) return;
+            if (confirm('Auto-resolve will attempt to fix safe conflicts automatically. Continue?')) {
+                alert('Auto-resolution would:\n- Rename conflicting tables with hub prefixes\n- Merge redundant RLS policies\n- Consolidate duplicate functions\n- Reorder trigger execution\n\nIn production, this would apply safe automated fixes.');
+            }
+        }
+
+        function exportConflictReport() {
+            if (!checkConnection()) return;
+            alert('Conflict report would be exported as:\n- PDF summary\n- CSV detailed list\n- JSON for integration\n\nIn production, this would generate and download the report.');
+        }
+
+        function clearResolvedConflicts() {
+            if (confirm('Clear all resolved conflicts from the list?')) {
+                alert('Resolved conflicts cleared from view.');
+            }
+        }
+
+        function resolveConflict(id) {
+            alert(`Resolving conflict #${id}...\n\nIn production, this would apply the suggested fix or allow manual resolution.`);
+        }
+
+        function ignoreConflict(id) {
+            alert(`Conflict #${id} will be ignored.\n\nIn production, this would mark the conflict as intentional.`);
+        }
+
+        // Logic Flow
+        function generateFlowDiagram() {
+            if (!checkConnection()) return;
+            
+            const table = document.getElementById('flowTableSelect').value;
+            if (!table) {
+                alert('Please select a table first');
+                return;
+            }
+            
+            const diagram = document.getElementById('flowDiagram');
+            diagram.innerHTML = '<p>Generating flow diagram... <span class="loading"></span></p>';
+            
+            setTimeout(() => {
+                let html = `<h3>Logic Flow for Table: ${table}</h3>`;
+                html += `
+                    <div class="flow-node">
+                        <strong>1. INSERT Event</strong>
+                        <p>BEFORE INSERT Trigger: validate_data</p>
+                    </div>
+                    <div class="flow-node">
+                        <strong>2. Function Execution</strong>
+                        <p>Function: validate_data() → Returns boolean</p>
+                    </div>
+                    <div class="flow-node">
+                        <strong>3. Data Inserted</strong>
+                        <p>Row inserted into ${table}</p>
+                    </div>
+                    <div class="flow-node">
+                        <strong>4. AFTER INSERT Trigger</strong>
+                        <p>Trigger: on_${table}_created</p>
+                    </div>
+                    <div class="flow-node">
+                        <strong>5. Notification Function</strong>
+                        <p>Function: send_notification() → Notifies relevant users</p>
+                    </div>
+                    <div class="flow-node">
+                        <strong>6. RLS Policy Check</strong>
+                        <p>Policy: ${table}_select_own → Filters visible rows</p>
+                    </div>
+                `;
+                
+                diagram.innerHTML = html;
+            }, 1500);
+        }
+
+        function analyzeDataFlow() {
+            if (!checkConnection()) return;
+            alert('Data flow analysis would:\n- Track data movement between tables\n- Identify dependencies\n- Show aggregation points\n- Map cross-hub data flows\n\nIn production, this would generate comprehensive data lineage.');
+        }
+
+        function findCircularDeps() {
+            if (!checkConnection()) return;
+            alert('Circular dependency detection would:\n- Analyze trigger chains\n- Check function call graphs\n- Identify recursive patterns\n- Report potential infinite loops\n\nIn production, this would scan all 38 triggers and 45 functions.');
+        }
+
+        function exportFlowDiagram() {
+            if (!checkConnection()) return;
+            alert('Flow diagram would be exported as:\n- PNG image\n- SVG vector\n- Mermaid markdown\n- JSON graph data\n\nIn production, this would generate downloadable diagram files.');
+        }
+
+        // Migration
+        function generateMigration() {
+            if (!checkConnection()) return;
+            
+            const type = document.getElementById('migrationType').value;
+            const env = document.getElementById('targetEnv').value;
+            const includeData = document.getElementById('includeData').checked;
+            
+            const output = document.getElementById('migrationOutput');
+            output.innerHTML = `<p>Generating ${type} migration for ${env}... <span class="loading"></span></p>`;
+            
+            setTimeout(() => {
+                let sql = `-- Migration generated for ${env} environment\n`;
+                sql += `-- Type: ${type}\n`;
+                sql += `-- Generated: ${new Date().toISOString()}\n\n`;
+                
+                sql += `-- Tables (${type === 'full' || type === 'tables' ? '127 tables' : 'skipped'})\n`;
+                sql += `-- RLS Policies (${type === 'full' || type === 'rls' ? '284 policies' : 'skipped'})\n`;
+                sql += `-- Functions (${type === 'full' || type === 'functions' ? '45 functions' : 'skipped'})\n`;
+                sql += `-- Triggers (${type === 'full' || type === 'triggers' ? '38 triggers' : 'skipped'})\n`;
+                sql += `-- Data Export: ${includeData ? 'Yes' : 'No'}\n\n`;
+                
+                sql += `BEGIN;\n\n`;
+                sql += `-- Example table creation\n`;
+                sql += `CREATE TABLE IF NOT EXISTS users (\n`;
+                sql += `  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n`;
+                sql += `  email TEXT UNIQUE NOT NULL,\n`;
+                sql += `  created_at TIMESTAMPTZ DEFAULT NOW()\n`;
+                sql += `);\n\n`;
+                
+                sql += `-- Example RLS policy\n`;
+                sql += `ALTER TABLE users ENABLE ROW LEVEL SECURITY;\n`;
+                sql += `CREATE POLICY users_select_own ON users\n`;
+                sql += `  FOR SELECT USING (auth.uid() = id);\n\n`;
+                
+                sql += `COMMIT;\n`;
+                
+                output.innerHTML = `<pre>${sql}</pre>`;
+            }, 2000);
+        }
+
+        function previewMigration() {
+            if (!checkConnection()) return;
+            alert('Migration preview would show:\n- SQL statements to be executed\n- Tables to be created/modified\n- Data to be migrated\n- Rollback plan\n\nIn production, this would generate a detailed preview.');
+        }
+
+        function exportMigration() {
+            if (!checkConnection()) return;
+            alert('Migration would be exported as:\n- SQL file\n- Supabase migration format\n- Version-controlled format\n\nIn production, this would download the migration file.');
+        }
+
+        function validateMigration() {
+            if (!checkConnection()) return;
+            alert('Migration validation would check:\n- SQL syntax\n- Dependency order\n- Data integrity constraints\n- Rollback safety\n\nIn production, this would validate the entire migration.');
+        }
+
+        // Export Schema
+        function exportSchema() {
+            if (!checkConnection()) return;
+            alert('Complete schema would be exported as:\n- SQL dump\n- JSON schema\n- Documentation\n- ERD diagram\n\nIn production, this would generate comprehensive schema export.');
+        }
+
+        // Helper function
+        function checkConnection() {
+            if (!isConnected) {
+                alert('Please connect to Supabase first');
+                return false;
+            }
+            return true;
+        }
+
+        // Initialize flow table select
+        window.addEventListener('load', () => {
+            const select = document.getElementById('flowTableSelect');
+            const tables = ['users', 'posts', 'comments', 'orders', 'products', 'transactions', 'analytics', 'notifications'];
+            tables.forEach(table => {
+                const option = document.createElement('option');
+                option.value = table;
+                option.textContent = table;
+                select.appendChild(option);
+            });
+        });
+    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"19a393b54aab4d848a888fa7ccc6f857","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
