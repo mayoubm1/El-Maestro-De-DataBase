@@ -29,7 +29,7 @@
 // YOUR REAL SUPABASE PROJECT (already correct)
 const SUPABASE_URL      = "https://vrfyjirddfdnwuffzqhb.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyZnlqaXJkZGZkbnd1ZmZ6cWhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDYwNjMsImV4cCI6MjA3NTQ4MjA2M30.glgJwI2yIqUFG8ZtWJk2esxGdXw6nFp5eQ8aANbRAvE";
-const BRIDGE            = SUPABASE_URL + "/functions/v1/telstp-bridge-v2";
+const BRIDGE            = "https://vrfyjirddfdnwuffzqhb.supabase.co/functions/v1/telstp-bridge-v2";
 
 async function callBridge(action, payload = {}) {
   const res = await fetch(BRIDGE, {
