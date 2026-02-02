@@ -16,7 +16,7 @@ const appState = {
     triggers: [],
     migrations: []
 };
-
+console.log('app.js loaded fresh - no mocks');									
 // Note: Assuming @supabase/supabase-js is included in index.html via <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 // If not, add it to index.html head.
 const { createClient } = Supabase;
@@ -487,44 +487,10 @@ function scanConflicts() {
 }
 
 function displayConflicts() {
-    const conflictList = document.getElementById('conflictList');
-
-    const conflicts = [
-        { 
-            type: 'Duplicate Column',
-            table1: 'contacts (CRM)',
-            table2: 'marketing_contacts (Marketing)',
-            description: 'Both tables have "email" column with different data types (varchar vs text)',
-            severity: 'high'
-        },
-        { 
-            type: 'Naming Conflict',
-            table1: 'accounts (CRM)',
-            table2: 'accounts_ledger (Finance)',
-            description: 'Similar table names may cause confusion. Consider renaming to "crm_accounts"',
-            severity: 'medium'
-        },
-        { 
-            type: 'Foreign Key Mismatch',
-            table1: 'orders (Sales)',
-            table2: 'products (Inventory)',
-            description: 'Foreign key references non-existent column "product_sku" instead of "id"',
-            severity: 'high'
-        },
-        { 
-            type: 'Index Duplication',
-            table1: 'invoices (Sales)',
-            table2: 'payments (Sales)',
-            description: 'Both tables have identical index on "customer_id" - consider composite index',
-            severity: 'low'
-        },
-        { 
-            type: 'Data Type Inconsistency',
-            table1: 'suppliers (Inventory)',
-            table2: 'vendors (Finance)',
-            description: 'Same entity with different schemas - merge into single table',
-            severity: 'high'
-        }
+  const conflictList = document.getElementById('conflictList');
+  conflictList.innerHTML = '<div class="alert alert-info">No conflicts in real DB yet - scan running...</div>';
+  // TODO: Real scan
+}
     ];
 
     conflictList.innerHTML = '';
